@@ -284,6 +284,6 @@ if __name__ == '__main__':
     coeffs = define_poly_coeff(clean_cut, dx, deg=1)
     timeit('Fitting coeffs')
 
-    lc, lc_err, synth, ff, ff_err = photometry(data_cut, noise_cut, coeffs, dx)
+    lc, lc_err, synth = photometry(data_cut, noise_cut, coeffs, dx)
     timeit('Photometry')
     
