@@ -257,7 +257,7 @@ if __name__ == '__main__':
         print('{:s}: T = {:.3f} s, DT = {:.3f} s'.format(label, T-T0, T-T1))
         T1 = T
     
-    shape = (16100, 64, 1000)
+    shape = (1000, 64, 1000) # Number of frames, rows (spatial), columns (wavelenth)
     pd = mock.PoetssData(shape)
     timeit('mock')
 
