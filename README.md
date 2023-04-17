@@ -1,5 +1,5 @@
 # POETSS
-Photometric Optimal Extraction of Time Series Spectra
+*Photometric Optimal Extraction of Time Series Spectra*
 
 This is a collection of routines that optimally extracts photometry
 from spectral time series from space telescopes where the PSF and pointing
