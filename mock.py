@@ -22,12 +22,12 @@ Effects included:
 
 NOT included:
 * Dark current separate from sky background (e.g. hot pixels)
-* Odd-even readout effetcs
+* Odd-even readout effects
 * Detector non-linearity
 * Uneven flat field (pixel response function)
 * Pixel sensitivity evolution with time ("ramp")
 * Other interfering sources in the field, scattered light ("ghosts")
-* Detailes lightcurve 
+* Detailed lightcurve 
 
 """
 import numpy as np
@@ -48,7 +48,7 @@ class PoetssData():
         self.jitter_std = 0.01  # Jitter std between frames, in pixels
         self.cr = 1e-3          # Cosmic Ray hit rate, per pixel
         self.bad = 5e-4         # Fraction of bad pixels
-        self.bg_noise = 23     # Background noise, electrons per pixel
+        self.bg_noise = 23      # Background noise, electrons per pixel
         self.slope = -3.1       # Slope of trace over detector, in pixels
         self.sed_fall = 0.5     # How much the SED falls to from the peak
         self.signal = 1e5       # Max number of photons per column
