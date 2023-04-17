@@ -9,6 +9,25 @@ Photometric Optimal Extraction of Time Series Spectra (POETSS)
 This is a data simulator class, used to generate data to be used
 by POETSS
 
+Effects included:
+* Spectrocopic trace as polynomial
+* Jitter of trace position per frame
+* PSF changing size linearly with wavelength
+* Bad pixels (for all frames)
+* Cosmic rays (random location / strength)
+* Spectrum with slope and randomly distributed spectral lines
+  of random strength and width
+* Convolution by spectral resolution
+* Noise from photon statistics including source and sky background
+
+NOT included:
+* Dark current separate from sky background (e.g. hot pixels)
+* Odd-even readout effetcs
+* Detector non-linearity
+* Uneven flat field (pixel response function)
+* Pixel sensitivity evolution with time ("ramp")
+* Other interfering sources in the field, scattered light ("ghosts")
+* Detailes lightcurve 
 
 """
 import numpy as np
