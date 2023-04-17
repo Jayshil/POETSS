@@ -10,7 +10,7 @@ This is a data simulator class, used to generate data to be used
 by POETSS
 
 Effects included:
-* Spectrocopic trace as polynomial
+* Spectroscopic trace as polynomial
 * Jitter of trace position per frame
 * PSF changing size linearly with wavelength
 * Bad pixels (for all frames)
