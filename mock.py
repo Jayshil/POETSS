@@ -32,7 +32,6 @@ NOT included:
 """
 import numpy as np
 
-
 class PoetssData():
     """Simulates data to be used for POETSS
     """

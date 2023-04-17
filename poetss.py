@@ -58,7 +58,6 @@ def find_trace_cof(clean_cube, margin=5):
     return cent_mat
 
 
-
 def fit_multi_trace(cent_mat, deg=2, clip=3):
     """Fits a combined trace to the centers 
     measured in cent_mat (#frame, #column)
@@ -199,7 +198,7 @@ def photometry(data, noise, poly_coeffs, dx):
     base = np.ones_like(data)
     for n in range(data.shape[1]):
         for m in range(data.shape[2]):
-            p = np.poly1d(coeffs[:,n,m])
+            p = np.poly1d(poly_coeffs[:,n,m])
             base[:, n, m] = p(dx)
     
     weighted_data = data*base/noise**2
@@ -211,6 +210,29 @@ def photometry(data, noise, poly_coeffs, dx):
     synthspec = base*lightcurve[:,None,:]
     
     return lightcurve, lightcurve_err, synthspec
+
+
+def spectrum(coeffs):
+    """Returns the stellar spectrum as defined by the polynomial
+    coefficients.
+    """
+    shape = coeffs.shape[1:]
+    spec2D = np.ones(shape)
+    for n in range(shape[0]):
+        for m in range(shape[1]):
+            p = np.poly1d(coeffs[:,n,m])
+            spec2D[n, m] = p(0)
+    return np.sum(spec2D, axis=0)
+
+
+def white_light(lightcurve, lightcurve_err):
+    """Computes the white light time series from a spectral time series,
+    using weighted average. Returns the white light curve and its error
+    """
+    ssum = np.sum(1/lightcurve_err**2, axis=1)
+    whl = np.sum(lightcurve/lightcurve_err**2, axis=1) / ssum
+    whl_err = 1/ssum**.5
+    return whl, whl_err
 
 
 # Tools
@@ -285,5 +307,9 @@ if __name__ == '__main__':
     timeit('Fitting coeffs')
 
     lc, lc_err, synth = photometry(data_cut, noise_cut, coeffs, dx)
-    timeit('Photometry')
+    timeit('Photometric time series')
     
+    sp = spectrum(coeffs)
+    sp_lc = lc*sp[None,:]
+    sp_lc_err = lc_err*sp[None,:]
+    timeit('Computed spectrum')
