@@ -37,7 +37,7 @@ Installation for `POETSS` can be done using `setup.py` file in the repository, b
 
 ```
 git clone https://github.com/alphapsa/POETSS.git
-cd pycdata
+cd POETSS
 python setup.py install
 ```
 
