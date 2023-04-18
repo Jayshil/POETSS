@@ -13,10 +13,14 @@ are stable.
 These routines assume a basic reduction have been made and that the data 
 are on the following format:
 
-flux data in a cube with (frame#, row# (spatial direction), column# (wavelentgth direction))
-the corresponding noise cube, containing 1 std uncertainties for all data
-a bad pixelmap, i.e. a map of pixels that are bad in all frames. The format is
-a boolean fram where pixel is True if bad, False otherwise.
+A) flux data in a numpy array cube with
+(frame#, row# (spatial direction), column# (wavelentgth direction))
+
+B) the corresponding noise cube, containing uncertainties (1 std) for all data
+
+C) a bad pixelmap, i.e. a 2D array of pixels that are bad in all frames.
+The format is a boolean 2D numpy array (row#, column#) fram where pixel
+is True if bad, False otherwise.
 
 The routines are then used to 
 
@@ -25,7 +29,7 @@ The routines are then used to
     offset in the spatial direction (due to jitter)
 3) Shift the region around the trace into a matrix where the spectral trace
     is approximately parallel to the rows
-4) Define linear correlation between pixel values and dx
+4) Define linear correlation between pixel flux values and jitter offset dx
 5) Extract photometry and error per column in frame
 
 """
@@ -143,17 +147,19 @@ def clean_nan(nandata, max_iter=50, Nchunks=8):
     of bad rows), interpolate along all axes for a maxiumum of max_iter
     iterations.
     To ease memory requirements, the data can be divided up in Nchunks
-    chunks.
+    number of chunks.
     """
     clean = np.zeros_like(nandata)
     chunk = np.array(np.linspace(0,len(clean), Nchunks+1), dtype=int)
     
     for n in range(len(chunk)-1):
-        clean[chunk[n]:chunk[(n+1)]] = replace_nan(nandata[chunk[n]:chunk[(n+1)]], max_iter=2, axis=(0,2))
+        clean[chunk[n]:chunk[(n+1)]] = replace_nan(nandata[chunk[n]:chunk[(n+1)]],
+                                                   max_iter=2, axis=(0,2))
     if np.sum(np.isnan(clean)) == 0:
         return clean
     for n in range(len(chunk)-1):
-        clean[chunk[n]:chunk[(n+1)]] = replace_nan(clean[chunk[n]:chunk[(n+1)]], max_iter=max_iter)
+        clean[chunk[n]:chunk[(n+1)]] = replace_nan(clean[chunk[n]:chunk[(n+1)]],
+                                                   max_iter=max_iter)
     return clean
 
 
@@ -279,11 +285,11 @@ if __name__ == '__main__':
         print('{:s}: T = {:.3f} s, DT = {:.3f} s'.format(label, T-T0, T-T1))
         T1 = T
     
-    shape = (1000, 64, 1000) # Number of frames, rows (spatial), columns (wavelenth)
+    shape = (16100, 64, 1000) # Number of frames, rows (spatial), columns (wavelenth)
     pd = mock.PoetssData(shape)
     timeit('mock')
 
-    data, noise = pd.generate(occ_depth=100)
+    data, noise = pd.generate(occ_depth=1000)
     timeit('Generate data')
     
     nandata = cr2nan(data, pd.bad_map)
@@ -312,4 +318,10 @@ if __name__ == '__main__':
     sp = spectrum(coeffs)
     sp_lc = lc*sp[None,:]
     sp_lc_err = lc_err*sp[None,:]
-    timeit('Computed spectrum')
+
+    n0, n1 = pd.occ_start, pd.occ_end
+    star_spec = np.mean(sp_lc[n0:n1,:], axis=0)
+    tot_spec = np.mean(sp_lc[np.arange(-n0, n0),:], axis=0)
+    planet_spec = tot_spec-star_spec
+
+    timeit('Computed spectra')
