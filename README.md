@@ -1,5 +1,6 @@
 # POETSS
 *Photometric Optimal Extraction of Time Series Spectra*
+
 <i>Author: Alexis Brandeker ([alexis@astro.su.se](mailto:alexis@astro.su.se))</i>
 
 This is a collection of routines that optimally extracts photometry
