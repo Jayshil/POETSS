@@ -11,10 +11,11 @@ are in the following format:
 A) Flux data in a numpy array cube, with
 (frame#, row# (spatial direction), column# (wavelentgth direction))
 
-B) The corresponding noise cube, containing 1 std uncertainties for all data
+B) The corresponding noise cube, containing uncertainties (1 std) for all data
 
-C) A bad pixelmap, i.e. a 2D map of pixels that are bad in all frames. The format is
-a boolean fram where pixel is True if bad, False otherwise.
+C) A bad pixelmap, i.e. a 2D array of pixels that are bad in all frames.
+The format is a boolean 2D numpy array (row#, column#) fram where pixel
+is True if bad, False otherwise.
 
 The routines are then used to 
 
