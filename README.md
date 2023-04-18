@@ -1,6 +1,8 @@
 # POETSS
 *Photometric Optimal Extraction of Time Series Spectra*
 
+<i>Author: Alexis Brandeker ([alexis@astro.su.se](mailto:alexis@astro.su.se))</i>
+
 This is a collection of routines that optimally extracts photometry
 from spectral time series from space telescopes where the PSF and pointing
 are stable.
@@ -29,3 +31,14 @@ The routines are then used to
 
 Also included is a class to mock data. Example code on how to run POETSS
 is given by the end of poetss.py.
+
+## Installation
+Installation for `POETSS` can be done using `setup.py` file in the repository, by following commands below:
+
+```
+git clone https://github.com/alphapsa/POETSS.git
+cd POETSS
+python setup.py install
+```
+
+There you are! You are now ready to use this package!
