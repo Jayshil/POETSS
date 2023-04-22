@@ -67,6 +67,7 @@ class PoetssData():
         self.occ_start = int(self.shape[0]/3)
         self.occ_end = int(self.shape[0]*2/3)
         self.dx = self.jitter_std * np.random.randn(self.shape[0])        
+        self.dw = self.jitter_std * np.random.randn(self.shape[0])        
         self.bad_map = np.random.rand(self.shape[1], self.shape[2]) <= self.bad
 
         X = x[None,:,None] - self._trace(w)[None,None,:] - self.dx[:,None,None]

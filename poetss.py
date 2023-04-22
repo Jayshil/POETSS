@@ -200,7 +200,7 @@ def photometry(data, noise, poly_coeffs, dx):
     cube
     Returns 
     """
-    noise *= data/data  # This ensures that NaNs from data are present in noise
+    noise[np.isnan(data)] = np.nan
     base = np.ones_like(data)
     for n in range(data.shape[1]):
         for m in range(data.shape[2]):
@@ -272,56 +272,3 @@ def replace_nan(data, max_iter=50, axis=None):
         if np.sum(np.isnan(nan_data)) == 0:
             break
     return nan_data
-
-
-if __name__ == '__main__': 
-    import mock
-    from time import time
-    T0 = T1 = time()
-    
-    def timeit(label=''):
-        global T0, T1
-        T = time()
-        print('{:s}: T = {:.3f} s, DT = {:.3f} s'.format(label, T-T0, T-T1))
-        T1 = T
-    
-    shape = (16100, 64, 1000) # Number of frames, rows (spatial), columns (wavelenth)
-    pd = mock.PoetssData(shape)
-    timeit('mock')
-
-    data, noise = pd.generate(occ_depth=1000)
-    timeit('Generate data')
-    
-    nandata = cr2nan(data, pd.bad_map)
-    timeit('Find NaN')
-
-    clean = clean_nan(nandata)
-    timeit('Clean NaN')
-
-    cent_mat = find_trace_cof(clean)
-    timeit('Trace measurement')
-    
-    trace, dx = fit_multi_trace(cent_mat)
-    timeit('Trace fit')
-    
-    clean_cut = extract_trace(clean, trace, 5)
-    data_cut = extract_trace(nandata, trace, 5)
-    noise_cut = extract_trace(noise, trace, 5)
-    timeit('Extract trace')
-    
-    coeffs = define_poly_coeff(clean_cut, dx, deg=1)
-    timeit('Fitting coeffs')
-
-    lc, lc_err, synth = photometry(data_cut, noise_cut, coeffs, dx)
-    timeit('Photometric time series')
-    
-    sp = spectrum(coeffs)
-    sp_lc = lc*sp[None,:]
-    sp_lc_err = lc_err*sp[None,:]
-
-    n0, n1 = pd.occ_start, pd.occ_end
-    star_spec = np.mean(sp_lc[n0:n1,:], axis=0)
-    tot_spec = np.mean(sp_lc[np.arange(-n0, n0),:], axis=0)
-    planet_spec = tot_spec-star_spec
-
-    timeit('Computed spectra')
