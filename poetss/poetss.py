@@ -37,6 +37,63 @@ import numpy as np
 import warnings
 
 
+def cr2nan(data, bad_map, clip=5, niter=5):
+    """ 
+    Replaces outliers with NaN assuming there are only
+    statistical differenes between frames, and defines
+    anything more than clip std away per pixel as an outlier
+    
+    data is 3D array in format [frame#, row#, col#]
+    bad_map is 2D array in format [row#, col#]] where
+           True is bad pixel and False is good pixel
+    clip is how much a cvalue should deviate to be defined as an outlier
+    niter is the maxium number of iterations in sigma-clipping algorithm
+    """
+    indata = data.copy()
+    indata[:, bad_map] = np.nan
+    indata[0, bad_map] = 0      # To avoid pixels being NaN in all frames
+    nandata = indata.copy()
+    ind0 = np.zeros(indata.shape, dtype='?')
+    
+    for n in range(niter):
+        s = np.nanstd(nandata, axis=0)
+        m = np.nanmedian(nandata, axis=0)
+        nandata = indata.copy()
+        ind1 = np.abs(nandata-m) > clip*s
+        print('Iter {:d}/{:d} masked: {:d} = {:.2f}%'.format(n+1, niter,
+                    np.sum(ind1), 100.0*np.sum(ind1)/np.prod(data.shape)))
+        nandata[ind1] = np.nan
+        if n > 2 and np.prod(ind0 == ind1):
+            break
+        ind0 = ind1
+    nandata[0,bad_map] = np.nan
+
+    return nandata
+ 
+
+def clean_nan(nandata, max_iter=50, N_chunks=8):
+    """Replace NaN data points in a cube by interpolation. In a first step
+    avoid interpolating across rows (since flux gradients are 
+    generally greater there), but if any nan are left (can happen in case
+    of bad rows), interpolate along all axes for a maxiumum of max_iter
+    iterations.
+    To ease memory requirements, the data can be divided up in N_chunks
+    number of chunks.
+    """
+    clean = np.zeros_like(nandata)
+    chunk = np.array(np.linspace(0,len(clean), N_chunks+1), dtype=int)
+    
+    for n in range(len(chunk)-1):
+        clean[chunk[n]:chunk[(n+1)]] = replace_nan(nandata[chunk[n]:chunk[(n+1)]],
+                                                   max_iter=2, axis=(0,2))
+    if np.sum(np.isnan(clean)) == 0:
+        return clean
+    for n in range(len(chunk)-1):
+        clean[chunk[n]:chunk[(n+1)]] = replace_nan(clean[chunk[n]:chunk[(n+1)]],
+                                                   max_iter=max_iter)
+    return clean
+
+
 def find_trace_cof(clean_cube, margin=5):
     """ Use centre-of-flux to measure the trace for each frame and column.
     margin is how many pixels outside of the trace should be considered.
@@ -104,63 +161,6 @@ def fit_trace_poly(cent_vec, deg=2, clip=3, niter=10):
         p = np.poly1d(c)
         sel0 = sel1
     return c
-    
-
-def cr2nan(data, bad_map, clip=5, niter=5):
-    """ 
-    Replaces outliers with NaN assuming there are only
-    statistical differenes between frames, and defines
-    anything more than clip std away per pixel as an outlier
-    
-    data is 3D array in format [frame#, row#, col#]
-    bad_map is 2D array in format [row#, col#]] where
-           True is bad pixel and False is good pixel
-    clip is how much a cvalue should deviate to be defined as an outlier
-    niter is the maxium number of iterations in sigma-clipping algorithm
-    """
-    indata = data.copy()
-    indata[:, bad_map] = np.nan
-    indata[0, bad_map] = 0      # To avoid pixels being NaN in all frames
-    nandata = indata.copy()
-    ind0 = np.zeros(indata.shape, dtype='?')
-    
-    for n in range(niter):
-        s = np.nanstd(nandata, axis=0)
-        m = np.nanmedian(nandata, axis=0)
-        nandata = indata.copy()
-        ind1 = np.abs(nandata-m) > clip*s
-        print('Iter {:d}/{:d} masked: {:d} = {:.2f}%'.format(n+1, niter,
-                    np.sum(ind1), 100.0*np.sum(ind1)/np.prod(data.shape)))
-        nandata[ind1] = np.nan
-        if n > 2 and np.prod(ind0 == ind1):
-            break
-        ind0 = ind1
-    nandata[0,bad_map] = np.nan
-
-    return nandata
- 
-
-def clean_nan(nandata, max_iter=50, N_chunks=8):
-    """Replace NaN data points in a cube by interpolation. In a first step
-    avoid interpolating across rows (since flux gradients are 
-    generally greater there), but if any nan are left (can happen in case
-    of bad rows), interpolate along all axes for a maxiumum of max_iter
-    iterations.
-    To ease memory requirements, the data can be divided up in N_chunks
-    number of chunks.
-    """
-    clean = np.zeros_like(nandata)
-    chunk = np.array(np.linspace(0,len(clean), N_chunks+1), dtype=int)
-    
-    for n in range(len(chunk)-1):
-        clean[chunk[n]:chunk[(n+1)]] = replace_nan(nandata[chunk[n]:chunk[(n+1)]],
-                                                   max_iter=2, axis=(0,2))
-    if np.sum(np.isnan(clean)) == 0:
-        return clean
-    for n in range(len(chunk)-1):
-        clean[chunk[n]:chunk[(n+1)]] = replace_nan(clean[chunk[n]:chunk[(n+1)]],
-                                                   max_iter=max_iter)
-    return clean
 
 
 def extract_trace(data_cube, trace, psf_rad=5):
