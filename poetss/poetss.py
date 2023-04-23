@@ -84,12 +84,12 @@ def clean_nan(nandata, max_iter=50, N_chunks=8):
     chunk = np.array(np.linspace(0,len(clean), N_chunks+1), dtype=int)
     
     for n in range(len(chunk)-1):
-        clean[chunk[n]:chunk[(n+1)]] = replace_nan(nandata[chunk[n]:chunk[(n+1)]],
+        clean[chunk[n]:chunk[(n+1)]] = _replace_nan(nandata[chunk[n]:chunk[(n+1)]],
                                                    max_iter=2, axis=(0,2))
     if np.sum(np.isnan(clean)) == 0:
         return clean
     for n in range(len(chunk)-1):
-        clean[chunk[n]:chunk[(n+1)]] = replace_nan(clean[chunk[n]:chunk[(n+1)]],
+        clean[chunk[n]:chunk[(n+1)]] = _replace_nan(clean[chunk[n]:chunk[(n+1)]],
                                                    max_iter=max_iter)
     return clean
 
@@ -133,7 +133,7 @@ def fit_multi_trace(cent_mat, deg=2, clip=3):
     coeffs = np.zeros((len(cent_cent), deg+1))
     
     for n in range(len(cent_cent)):
-        coeffs[n] = fit_trace_poly(cent_cent[n], deg=deg, clip=clip)
+        coeffs[n] = _fit_trace_poly(cent_cent[n], deg=deg, clip=clip)
         
     c = np.mean(coeffs, axis=0)
     p = np.poly1d(c)
@@ -142,25 +142,6 @@ def fit_multi_trace(cent_mat, deg=2, clip=3):
     dx = np.median(cent_mat-trace[None,:], axis=1)
 
     return trace, dx
-
-
-def fit_trace_poly(cent_vec, deg=2, clip=3, niter=10):
-    """Fits a polynomial to the measured positions. Uses
-    sigma-clipping to remove outliers from fit
-    """
-    w = np.arange(len(cent_vec))
-    c = np.polyfit(w, cent_vec, deg=deg)
-    p = np.poly1d(c)
-    sel0 = np.ones(len(cent_vec), dtype='?')
-    for n in range(niter):
-        s = np.std(cent_vec[sel0]-p(w[sel0]))
-        sel1 = np.abs(cent_vec-p(w)) <= clip*s
-        c = np.polyfit(w[sel1], cent_vec[sel1], deg=deg)
-        if np.prod(sel0==sel1) == 1:
-            break
-        p = np.poly1d(c)
-        sel0 = sel1
-    return c
 
 
 def extract_trace(data_cube, trace, psf_rad=5):
@@ -241,9 +222,28 @@ def white_light(lightcurve, lightcurve_err):
     return whl, whl_err
 
 
-# Tools
+# Helper function
 
-def replace_nan(data, max_iter=50, axis=None):
+def _fit_trace_poly(cent_vec, deg=2, clip=3, niter=10):
+    """Fits a polynomial to the measured positions. Uses
+    sigma-clipping to remove outliers from fit
+    """
+    w = np.arange(len(cent_vec))
+    c = np.polyfit(w, cent_vec, deg=deg)
+    p = np.poly1d(c)
+    sel0 = np.ones(len(cent_vec), dtype='?')
+    for n in range(niter):
+        s = np.std(cent_vec[sel0]-p(w[sel0]))
+        sel1 = np.abs(cent_vec-p(w)) <= clip*s
+        c = np.polyfit(w[sel1], cent_vec[sel1], deg=deg)
+        if np.prod(sel0==sel1) == 1:
+            break
+        p = np.poly1d(c)
+        sel0 = sel1
+    return c
+
+
+def _replace_nan(data, max_iter=50, axis=None):
     """Replaces NaN-entries by mean of neighbours.
     Iterates until all NaN-entries are replaced or
     max_iter is reached. Works on N-dimensional arrays.
