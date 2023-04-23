@@ -30,7 +30,7 @@ and the jitter dx
 if __name__ == '__main__':
 
     import poetss
-    import mock
+    import poetss.mock as mock
     from time import time
 
     # Global time variables used by timeit() below

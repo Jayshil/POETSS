@@ -140,17 +140,17 @@ def cr2nan(data, bad_map, clip=5, niter=5):
     return nandata
  
 
-def clean_nan(nandata, max_iter=50, Nchunks=8):
+def clean_nan(nandata, max_iter=50, N_chunks=8):
     """Replace NaN data points in a cube by interpolation. In a first step
     avoid interpolating across rows (since flux gradients are 
     generally greater there), but if any nan are left (can happen in case
     of bad rows), interpolate along all axes for a maxiumum of max_iter
     iterations.
-    To ease memory requirements, the data can be divided up in Nchunks
+    To ease memory requirements, the data can be divided up in N_chunks
     number of chunks.
     """
     clean = np.zeros_like(nandata)
-    chunk = np.array(np.linspace(0,len(clean), Nchunks+1), dtype=int)
+    chunk = np.array(np.linspace(0,len(clean), N_chunks+1), dtype=int)
     
     for n in range(len(chunk)-1):
         clean[chunk[n]:chunk[(n+1)]] = replace_nan(nandata[chunk[n]:chunk[(n+1)]],
