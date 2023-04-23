@@ -191,7 +191,6 @@ def photometry(data, noise, poly_coeffs, dx):
     weighted_data = data*base/noise**2
     weights = (base/noise)**2
     weight_sum = np.nansum(weights, axis=1)
-    weighted_data[weight_sum==0] = np.nan
     weight_sum[weight_sum==0] = np.nan
 
     lightcurve = np.nansum(weighted_data, axis=1)/weight_sum
