@@ -191,9 +191,11 @@ def photometry(data, noise, poly_coeffs, dx):
     weighted_data = data*base/noise**2
     weights = (base/noise)**2
     weight_sum = np.nansum(weights, axis=1)
+    weighted_data[weight_sum==0] = np.nan
+    weight_sum[weight_sum==0] = np.nan
 
     lightcurve = np.nansum(weighted_data, axis=1)/weight_sum
-    lightcurve_err = 1/weight_sum**.5    
+    lightcurve_err = 1/weight_sum**.5
     synthspec = base*lightcurve[:,None,:]
     
     return lightcurve, lightcurve_err, synthspec
@@ -209,15 +211,15 @@ def spectrum(coeffs):
         for m in range(shape[1]):
             p = np.poly1d(coeffs[:,n,m])
             spec2D[n, m] = p(0)
-    return np.sum(spec2D, axis=0)
+    return np.nansum(spec2D, axis=0)
 
 
 def white_light(lightcurve, lightcurve_err):
     """Computes the white light time series from a spectral time series,
     using weighted average. Returns the white light curve and its error
     """
-    ssum = np.sum(1/lightcurve_err**2, axis=1)
-    whl = np.sum(lightcurve/lightcurve_err**2, axis=1) / ssum
+    ssum = np.nansum(1/lightcurve_err**2, axis=1)
+    whl = np.nansum(lightcurve/lightcurve_err**2, axis=1) / ssum
     whl_err = 1/ssum**.5
     return whl, whl_err
 
