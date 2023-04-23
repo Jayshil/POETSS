@@ -61,7 +61,7 @@ def cr2nan(data, bad_map, clip=5, niter=5):
         nandata = indata.copy()
         ind1 = np.abs(nandata-m) > clip*s
         print('Iter {:d}/{:d} masked: {:d} = {:.2f}%'.format(n+1, niter,
-                    np.sum(ind1), 100.0*np.sum(ind1)/np.prod(data.shape)))
+                    np.sum(ind1), (100.0*np.sum(ind1))/np.prod(data.shape)))
         nandata[ind1] = np.nan
         if n > 2 and np.prod(ind0 == ind1):
             break
