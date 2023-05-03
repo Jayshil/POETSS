@@ -144,6 +144,14 @@ def fit_multi_trace(cent_mat, deg=2, clip=3):
     return trace, dx
 
 
+def empiric_noise(data_cube):
+    """Estimate noise of data empirically by doing statistics along
+    the timeline. Returns 2D image with estimated noise for each 
+    pixel.
+    """
+    return np.nanmedian(np.abs(np.diff(data_cube, axis=0)), axis=0)
+
+
 def extract_trace(data_cube, trace, psf_rad=5):
     """Extracts a slit of radius psf_rad around the
     trace in the data_cube, and returns a new cube
