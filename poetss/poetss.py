@@ -37,11 +37,11 @@ import numpy as np
 import warnings
 
 
-def cr2nan(data, bad_map, clip=5, niter=5):
+def cr2nan(data, bad_map, clip=5):
     """ 
     Replaces outliers with NaN assuming there are only
     statistical differenes between frames, and defines
-    anything more than clip std away per pixel as an outlier
+    anything more than clip x mad away per pixel as an outlier
     
     data is 3D array in format [frame#, row#, col#]
     bad_map is 2D array in format [row#, col#]] where
@@ -49,24 +49,19 @@ def cr2nan(data, bad_map, clip=5, niter=5):
     clip is how much a cvalue should deviate to be defined as an outlier
     niter is the maxium number of iterations in sigma-clipping algorithm
     """
-    indata = data.copy()
-    indata[:, bad_map] = np.nan
-    indata[0, bad_map] = 0      # To avoid pixels being NaN in all frames
-    nandata = indata.copy()
-    ind0 = np.zeros(indata.shape, dtype='?')
+    nandata = data.copy()
+    nandata[:, bad_map] = np.nan
     
-    for n in range(niter):
-        s = np.nanstd(nandata, axis=0)
-        m = np.nanmedian(nandata, axis=0)
-        nandata = indata.copy()
-        ind1 = np.abs(nandata-m) > clip*s
-        print('Iter {:d}/{:d} masked: {:d} = {:.2f}%'.format(n+1, niter,
-                    np.sum(ind1), (100.0*np.sum(ind1))/np.prod(data.shape)))
-        nandata[ind1] = np.nan
-        if n > 2 and np.prod(ind0 == ind1):
-            break
-        ind0 = ind1
-    nandata[0,bad_map] = np.nan
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore") # Ignore all-nan warnings
+        s = np.nanmedian(np.abs(np.diff(nandata, axis=0)), axis=0)
+        m = np.nanmedian([data[1:-1, :, :], data[:-2, :, :], data[2:, :, :]], axis=0)
+    d = data.copy()
+    d[1:-1, :, :] -= m
+    d[0, :, :] -= m[0, :, :]
+    d[-1, :, :] -= m[-1, :, :]
+    ind = np.abs(d) > clip*s
+    nandata[ind] = np.nan
 
     return nandata
  
